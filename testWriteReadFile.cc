@@ -1,53 +1,8 @@
 #include<cstdio>
 #include<include/leveldb/slice.h>
 #include<iostream>
-struct record {
-    char *key;
-    char *value;
-    uint64_t key_size;
-    uint64_t value_size;
-}
-enum class StatusCode{
-    SUCCESS = 0,
-    INVALID_KEY_SIZE,
-    INVALID_KEY,
-    INVALID_VALUE_SIZE,
-    INVALID_VALUE
-};
+#include "base.h"
 
-class FileIterator{
-public:    
-    File *fp;
-    StatusCode WriteRecord(const record &r){
-        if(fwrite(&r.key_size,8,1,fp) == 0){            
-            return INVALID_KEY_SIZE;
-        }
-        if(fwrite(r.key,r.key_size,1,fp) == 0){
-            return INVALID_KEY;
-        }
-        if(fwrite(&r.value_size,8,1,fp) == 0){
-            return INVALID_VALUE_SIZE;
-        }
-        if(fwrite(r.value,r.value_size,1,fp) == 0){
-            return INVALID_VALUE;
-        }
-    }
-
-    StatusCode ReadRecord(record *r){
-        if (fread(&r.key_size,8,1,fp) == 0) {            
-            return INVALID_KEY_SIZE;
-        }
-        if (fread(r.key,r.key_size,1,fp) == 0) {
-            return INVALID_KEY;
-        }
-        if (fread(&r.value_size,8,1,fp) == 0) {
-            return INVALID_VALUE_SIZE;
-        }
-        if (fread(r.value,r.value_size,1,fp) == 0) {
-            return INVALID_VALUE;
-        }
-    }
-}
 int main(){
     
     uint64_t key_size,value_size;
@@ -57,30 +12,42 @@ int main(){
     uint64_t value1_size = sizeof(value1);
     char key2[] = "678";
     uint64_t key2_size = sizeof(key2);
-    char value2[] = '9101112';
-    uint64_t value2_size = sizeof(value2);
+    std::string value2(1025,0);
+    value2[0] = 1;
+    uint64_t value2_size = 1025; 
+        
+    FILE *fp = fopen("tempfile.txt","wb");
+    PUF::FileIterator fi(fp);
+    leveldb::Slice slice_key1(key1,key1_size);
+    leveldb::Slice slice_value1(value1,value1_size);
 
-    record r1 = {key1,value1,key1_size,value1_size};
-    record r2 = {key2,value2,key2_size,value2_size};
-    
-    FILE *fp = fopen("tempfile.txt","w");
-    FileIterator fi;
-    fi.fp = fp;
-    fi.WriteRecord(r1);
-    fi.WriteRecord(r2);
+    leveldb::Slice slice_key2(key2,key2_size);
+    leveldb::Slice slice_value2(value2.c_str(),value2_size);
 
+    PUF::Record r1(slice_key1,slice_value1);
+    PUF::Record r2(slice_key2,slice_value2);
+    fi.WriteToUnSortedFile(r1);
+    fi.WriteToUnSortedFile(r2);
     fclose(fp);
 
-    FILE *rfp = fopen("tempfile.txt","r");
-    FileIterator fr;
-    fr.fp = rfp;
-    fr.ReadRecord(&r1);
-    fr.ReadRecord(&r2);
+    FILE *rfp = fopen("tempfile.txt","rb");
+    PUF::FileIterator fr(rfp);
+    r1.setFile(rfp);
+    r2.setFile(rfp);
 
-    std::cout<< r1.key << r1.value << std::endl;
-    std::cout<< r2.key << r2.value << std::endl;
-    
-    std::cout<<fr.ReadRecord() << std::endl;
-    std::cout<<feof(rfp)  << std::endl;
+    fr.readRecordFromFile(&r1);
+    fr.readRecordFromFile(&r2);        
+    leveldb::Slice real_key = r1.get_real_key();
+    leveldb::Slice real_value = r2.get_real_value();
 
+    for(int i = 0 ; i < real_key.size() ; i++){
+        std::cout << real_key.data()[i];
+    }
+    std::cout<<std::endl;
+
+    real_value = r2.get_real_value();
+    for(int i = 0 ; i < real_value.size(); i++){
+        std::cout << real_value.data()[i];
+    }
+    std::cout<<std::endl;
 }
