@@ -1,7 +1,7 @@
 #ifndef FILE_ITERATOR_H
 #define FILE_ITERATOR_H
 #include"base.h"
-#include"record.h"
+#include"Record.h"
 #include <unistd.h>
 namespace PUF{
 class FileIterator{
@@ -12,7 +12,9 @@ public:
     FileIterator():fp_(nullptr),curr_(0){}
     // 0 means success
     // 1 means EOF
-    StatusCode readRecordFromUnsortedFile (Record *r);
+    StatusCode readRecordFromUnsortedFile (RecordPtr &r);
+
+    StatusCode readRecordFromSortedFile (RecordPtr &r);
 
     StatusCode writeToUnSortedFile(const Record &r);
 

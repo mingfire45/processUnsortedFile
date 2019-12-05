@@ -6,7 +6,7 @@ void SortedFile::readFromRecordPool() {
     auto &record_pool = RecordPool::getInstance();
     while (true) {
         //may wait
-        std::vector<Record*> *records = record_pool.getRecordsFromPool();
+        std::vector<RecordPtr> *records = record_pool.getRecordsFromPool();
         if (records == nullptr) {
             if (!has_records_in_unsorted_file.load()) {
                 writeToSSTFile();
@@ -28,7 +28,7 @@ void SortedFile::readFromRecordPool() {
 
 void SortedFile::writeToSSTFile(){
     while(!pq_.empty()){
-        Record* r = pq_.top();
+        RecordPtr r = pq_.top();
         fi.writeToSortedFile(*r);        
         delete r;
         pq_.pop();

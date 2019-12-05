@@ -13,9 +13,9 @@ namespace PUF{
 
 class RecordPool{    
 public:
-    void putRecordsIntoPool(std::vector<Record*>* records,bool signAll = false);
+    void putRecordsIntoPool(std::vector<RecordPtr>* records,bool signAll = false);
 
-    std::vector<Record*>* getRecordsFromPool();        
+    std::vector<RecordPtr>* getRecordsFromPool();        
     static RecordPool &getInstance(){
         static RecordPool record_pool;
         return record_pool;
@@ -36,7 +36,7 @@ protected:
 private:        
     leveldb::port::Mutex mu_;
     leveldb::port::CondVar cv_;
-    std::queue<std::vector<Record*>*> record_pools_;            
+    std::queue<std::vector<RecordPtr>*> record_pools_;            
 };
 }// namespace PUF
 

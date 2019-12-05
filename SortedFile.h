@@ -11,7 +11,11 @@ namespace PUF{
 static std::atomic<int> FILE_ID(0);
 //1GB
 static size_t kMAX_SORTED_FILE_SIZE = kGigaByte;
-auto cmp = [](const Record* r1,const Record* r2)  {return (*r1) < (*r2);};
+struct RecordPtrComp{
+    bool operator()(const RecordPtr &r1, cnst RecordPtr &r2) const{
+        return r1->get_real_key().compare(r2->get_real_key());
+    }
+};
 class SortedFile{
 public:
     SortedFile():total_record_size_(0),should_write_to_sst_(false){
@@ -47,9 +51,9 @@ public:
     }
 
 private:
-    std::priority_queue<Record*,decltype(cmp)>  pq_;
-    std::atomic<bool> should_write_to_sst_;
+    std::priority_queue<RecordPtr,RecordPtrComp>  pq_;
     size_t total_record_size_;
+    std::atomic<bool> should_write_to_sst_;
     char file_name_[30];
     FileIterator fi;
 };

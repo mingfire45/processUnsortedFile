@@ -6,7 +6,7 @@ SortDB::SortDB(char *filename):cv_(&mu_),wait_sst_write(false){
     unsorted_fp_ = fopen(filename,"wb");
     if (unsorted_fp_ == nullptr) {
         std::cout<<"open " << filename << " occur error " << std::endl;
-        std::cout<<std::strerror(errno) << std::endl;
+        std::cout<<strerror(errno) << std::endl;
         exit(1);
     }      
     preprocess();
@@ -17,9 +17,9 @@ void SortDB::readFromUnsortedFile(){
     bool need_read_from_unsorted_file = true;
     auto &record_pool = RecordPool::getInstance();
     while (true) {
-        std::vector<Record*> *records = new std::vector<Record*>();
+        std::vector<RecordPtr> *records = new std::vector<Record*>();
         for (int i = 0 ; i < kNumReadItems ; ++i) {
-            Record* r = new Record(); 
+            RecordPtr r = std::make_shared<Record>(); 
             auto ret_code = unsorted_fi.readRecordFromUnsortedFile(r);
             if (ret_code ==  StatusCode::EOF_OF_FILE){
                 if (!records->empty()){
@@ -90,7 +90,7 @@ void SortDB::sortRecords(){
 void SortDB::preprocess(){
     read_thread_ = new std::thread(&SortDB::readFromUnsortedFile,this);
     for (int i = 0 ; i < kDefaultSortThreadNum ; ++i){
-        sort_threads_.push_back(std::thread(&(SortDB::sortRecords),this));
+        sort_threads_.push_back(std::thread(&SortDB::sortRecords,this));
     }
     read_thread_->join();
     for (int i = 0 ; i < kDefaultSortThreadNum ; ++i){

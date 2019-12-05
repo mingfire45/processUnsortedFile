@@ -1,7 +1,7 @@
 #include"FileIterator.h"
 namespace PUF{
 
-StatusCode FileIterator::readRecordFromUnsortedFile(Record *r) {
+StatusCode FileIterator::readRecordFromUnsortedFile(RecordPtr &r) {
         if (r == nullptr) {
             return StatusCode::INVALID_PARAMS;
         }
@@ -72,6 +72,41 @@ StatusCode FileIterator::readRecordFromUnsortedFile(Record *r) {
         return StatusCode::SUCCESS;
 }
 
+StatusCode FileIterator::readRecordFromSortedFile(RecordPtr &r,char* key, char* value){
+    uint16_t key_size;
+    if (fread(&key_size, 2, 1, fp_) == 0) {
+        return StatusCode::INVALID_KEY_SIZE;
+    }
+
+    if (fread(key + 2, key_size, 1, fp_) == 0){
+        return StatusCode::INVAILD_VALUE_SIZE;
+    }
+    memcpy(key,&key_size,2);
+
+    char value_type;
+    if (fread(&value_type,1,1,fp_) == 0){
+        return StatusCode::INVALID_PARAMS;
+    }
+
+    uint16_t value_size;
+    if（value_type == SHORT_VALUE) {
+        if (fread(&value_size,2,1,fp_) == 0){
+            return StatusCode::INVALID_VALUE_SIZE;
+        }
+        if (fread(value + 3,value_size, 1, fp_) == 0){
+            return StatusCode::INVALID_VALUE;
+        }
+        memcpy(value, SHORT_VALUE, 1);
+        memcpy(value+1,&value_size, 2);
+    } else {
+        if (fread(value+1,2+8,1,fp__) == 0){
+            return StatusCode::INVALID_VALUE;
+        }
+        memcpy(value,LONG_VALUE,1);
+    }
+
+}
+
 StatusCode FileIterator::writeToUnSortedFile(const Record &r){
     uint64_t len = r.key.size();
     if (fwrite(&len,8,1,fp_) == 0){            
@@ -88,7 +123,8 @@ StatusCode FileIterator::writeToUnSortedFile(const Record &r){
     }
     if (fwrite(r.value.data(),len,1,fp_) == 0) {
         return StatusCode::INVALID_VALUE;
-    }            
+    }       
+    return StatusCode::SUCCESS;     
 }
 
 StatusCode FileIterator::writeToSortedFile(const Record &r){

@@ -66,9 +66,16 @@ public:
     ~Record(){
         if(value_buf_ != nullptr){
             zFree(value_buf_);
+            value_buf_ = nullptr;
         }
-        zFree(const_cast<char*>(key.data()));
-        zFree(const_cast<char*>(value.data()));
+        if(key.data() != nullptr){
+            zFree(const_cast<char*>(key.data()));
+        }
+        if(value.data() != nullptr){
+            zFree(const_cast<char*>(value.data()));
+        }
+        key = leveldb::Slice();
+        value = leveldb::Slice();
     }
 
 private:
@@ -77,7 +84,11 @@ private:
   
 
 };
+
+typedef std::shared_ptr<Record> RecordPtr;
 } //namespace PUF
+
+
 
 
 #endif

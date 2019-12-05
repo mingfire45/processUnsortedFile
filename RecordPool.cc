@@ -1,7 +1,7 @@
 #include"RecordPool.h"
 namespace PUF{
 
-void RecordPool::putRecordsIntoPool(std::vector<Record*>* records, bool signAll){
+void RecordPool::putRecordsIntoPool(std::vector<RecordPtr>* records, bool signAll){
     mu_.Lock();
     record_pools_.push(records);        
     if (signAll) {
@@ -12,9 +12,9 @@ void RecordPool::putRecordsIntoPool(std::vector<Record*>* records, bool signAll)
     mu_.Unlock();
 }
 
-std::vector<Record*>* RecordPool::getRecordsFromPool(){
+std::vector<RecordPtr>* RecordPool::getRecordsFromPool(){
     mu_.Lock();
-    std::vector<Record*> *ret = nullptr;
+    std::vector<RecordPtr> *ret = nullptr;
     if (!record_pools_.empty()) {
         ret = record_pools_.front();   
         record_pools_.pop();    

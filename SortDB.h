@@ -2,7 +2,7 @@
 #define SORT_DB_H
 #include"base.h"
 #include"FileIterator.h"
-#include"record.h"
+#include"Record.h"
 #include"SortedFile.h"
 #include"SpinLock.h"
 #include"leveldb/port/port_stdcxx.h"
@@ -19,6 +19,9 @@ class SortDB {
     void readFromUnsortedFile();
     void sortRecords();
 private:
+    leveldb::port::Mutex mu_;
+    leveldb::port::CondVar cv_;
+    
     FILE* unsorted_fp_;
     SpinLock s_;
     //following variables are protected by s_
@@ -28,8 +31,7 @@ private:
     //end
     
     int sort_thread_num = kDefaultSortThreadNum;
-    leveldb::port::Mutex mu_;
-    leveldb::port::CondVar cv_;
+   
     std::vector<std::thread> sort_threads_;
     std::thread* read_thread_;
 };
