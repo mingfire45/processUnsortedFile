@@ -37,4 +37,14 @@ void SortedFile::writeToSSTFile(){
 }
 
 
+bool SortedFile::reOpenForRead(){
+    fp_ = foepn(file_name_,"rb");
+    if (fp_ == nullptr) {
+        std::cout<<"can't reopen sorted file: "<< file_name_ <<std::endl;
+        std::cout<<strerror(errno)<<std::endl;
+        exit(errno);
+    }
+    fi_.setFile(fp_);
+}
+
 } // namespace PUF

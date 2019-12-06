@@ -27,9 +27,11 @@ public:
             std::cout<<strerror(errno)<<std::endl;
             exit(errno);
         }
-        fi.setFile(fp);
+        fi_.setFile(fp);
     }
     void readFromRecordPool();
+
+    bool reOpenForRead();
 
     //no need to be accurte
     size_t totalRecordSize() const {
@@ -50,12 +52,16 @@ public:
         should_write_to_sst_.store(!should_write_to_sst_.load());
     }
 
+    const FileIterator& getFi(){
+        return fi_;
+    }
+
 private:
     std::priority_queue<RecordPtr,RecordPtrComp>  pq_;
     size_t total_record_size_;
     std::atomic<bool> should_write_to_sst_;
     char file_name_[30];
-    FileIterator fi;
+    FileIterator fi_;
 };
 
 class SortedFilePtr{

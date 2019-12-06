@@ -14,7 +14,7 @@ public:
     // 1 means EOF
     StatusCode readRecordFromUnsortedFile (RecordPtr &r);
 
-    StatusCode readRecordFromSortedFile (RecordPtr &r);
+    StatusCode readRecordFromSortedFile(RecordPtr &r, char* key, char* value);
 
     StatusCode writeToUnSortedFile(const Record &r);
 
@@ -22,11 +22,18 @@ public:
 
     void setFile(FILE *fp){
         fp_ = fp;        
+        curr_ = 0;
     }
 
     void flush(){
         fflush(fp_);
         fsync(fileno(fp_));
+    }
+
+    void close(){
+        fclose(fp_);
+        fp_ = nullptr;
+        curr_ = 0;
     }
     
 private:
